@@ -14,5 +14,5 @@
   hosts: docker
   become: true
   roles:
-  - role: docker_users
+  - role: docker-users
   - role: calvinbui.ansible_docker_network

@@ -42,7 +42,7 @@ Example Playbook
       hosts: docker
       become: true
       roles:
-      - role: docker_users
+      - role: docker-users
       - role: calvinbui.ansible_docker_network
 
 This playbook installs docker on the container, then configures the docker network. 
