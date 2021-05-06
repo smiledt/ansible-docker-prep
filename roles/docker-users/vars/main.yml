@@ -1,0 +1,6 @@
+---
+# vars file for container_deploy
+
+docker_users:
+  - ansible
+  - smiledt

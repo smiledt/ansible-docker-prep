@@ -1,0 +1,10 @@
+---
+# tasks file for docker-users
+
+- name: Ensure users are in the docker group.
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  with_items: "{{ docker_users }}"
+  

@@ -1,0 +1,6 @@
+---
+# defaults file for docker-users
+
+docker_users:
+  - foo
+  - bar

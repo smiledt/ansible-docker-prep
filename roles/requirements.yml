@@ -1,0 +1,8 @@
+---
+# Ansible Galaxy requirements file for the docker_install playbook
+# I wasn't quite sure where to put this
+
+# from galaxy
+- src: geerlingguy.docker
+- src: geerlingguy.pip
+- src: calvinbui.ansible_docker_network
