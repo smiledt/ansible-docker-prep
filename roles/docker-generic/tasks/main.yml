@@ -1,0 +1,67 @@
+---
+# tasks file for docker-plex
+
+- name: "Create directories if they do not exist for {{ docker_name }}"
+  ansible.builtin.file:
+    path: "{{ docker_volumes }}"
+    state: directory
+    mode: '0777'
+  when: docker_volumes is defined
+
+- name: "Set Docker container parameters with published ports and volumes for {{ docker_name }}"
+  ansible.builtin.set_fact:
+    container_parameters:
+      name: "{{ docker_name }}"
+      image: "{{ docker_image }}"
+      state: started
+      published_ports: "{{ docker_ports }}"
+      volumes: "{{ docker_volumes }}"
+      env: "{{ docker_environment_variables }}"
+      labels: "{{ docker_labels }}"
+      pull: "{{ always_pull | default('missing') }}"
+  when: docker_volumes is defined and docker_ports is defined
+
+- name: "Set Docker container parameters with published ports ONLY for {{ docker_name }}"
+  ansible.builtin.set_fact:
+    container_parameters:
+      name: "{{ docker_name }}"
+      image: "{{ docker_image }}"
+      state: started
+      published_ports: "{{ docker_ports }}"
+      env: "{{ docker_environment_variables }}"
+      labels: "{{ docker_labels }}"
+      pull: "{{ always_pull | default('missing') }}"
+  when: docker_volumes is not defined and docker_ports is defined
+
+- name: "Set Docker container parameters with volumes ONLY for {{ docker_name }}"
+  ansible.builtin.set_fact:
+    container_parameters:
+      name: "{{ docker_name }}"
+      image: "{{ docker_image }}"
+      state: started
+      volumes: "{{ docker_volumes }}"
+      env: "{{ docker_environment_variables }}"
+      labels: "{{ docker_labels }}"
+      pull: "{{ always_pull | default('missing') }}"
+  when: docker_volumes is defined and docker_ports is not defined
+
+- name: "Set Docker container parameters with NEITHER published ports NOR volumes for {{ docker_name }}"
+  ansible.builtin.set_fact:
+    container_parameters:
+      name: "{{ docker_name }}"
+      image: "{{ docker_image }}"
+      state: started
+      env: "{{ docker_environment_variables }}"
+      labels: "{{ docker_labels }}"
+      pull: "{{ always_pull | default('missing') }}"
+  when: docker_volumes is not defined and docker_ports is not defined
+
+- name: "Create container for {{ docker_name }}"
+  community.docker.docker_container: "{{ container_parameters | combine(docker_additional_options) }}"
+  register: new_container
+
+# - name: "Wait for container to start: {{ docker_name }}"
+#   ansible.builtin.wait_for:
+#     port: "{{ docker_ports[0].split(':')[0] }}"
+#     host: ansible_default_ipv4.address
+#   when: docker_ports is defined
