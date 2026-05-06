@@ -5,7 +5,6 @@
   vars:
     pip_install_packages:
       - name: docker
-
   roles:
     - geerlingguy.pip
     - geerlingguy.docker
@@ -14,5 +13,48 @@
   hosts: docker
   become: true
   roles:
-  - role: docker-users
-  - role: calvinbui.ansible_docker_network
+    - role: docker-users
+  # - role: calvinbui.ansible_docker_network
+
+- name: Install the Hawser image to the docker hosts.
+  hosts: docker:!dock
+  become: true
+  roles:
+    - role: docker-generic
+      docker_name: hawser
+      docker_image: ghcr.io/finsys/hawser:latest
+      docker_environment_variables:
+        TOKEN: MJ19Vo0JpMEho5jMVGprdVSseX
+        TZ: America/Chicago
+        STACKS_DIR: /opt/hawser/stacks
+      docker_volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock"
+        - "/opt/hawser/stacks:/opt/hawser/stacks"
+        - /opt/hawser/data:/data/stacks
+      docker_ports:
+        - 2377:2376
+      docker_additional_options:
+        restart_policy: always
+      always_pull: true
+
+- name: Install the Beszel agent image to the docker hosts.
+  hosts: docker:!mon01
+  become: true
+  roles:
+    - role: docker-generic
+      docker_name: beszel-agent
+      docker_image: henrygd/beszel-agent:latest
+      docker_environment_variables:
+        LISTEN: "45876"
+        KEY: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII2+p6ng5fpIHtixBiOL8JzwM0675GJeQi2UcnQSCvms"
+        HUB_URL: "http://mon01.plumbus.lab:8090"
+        TOKEN: "20ffdb1d-ed06-45be-acb1-15200f0f97b9"
+        TZ: America/Chicago
+      docker_volumes:
+        - "/opt/beszel_agent_data:/var/lib/beszel-agent"
+        - "/var/run/docker.sock:/var/run/docker.sock:ro"
+        - "/var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro" # allow the agent to communicate with systemd
+        # monitor other disks / partitions by mounting a folder in /extra-filesystems
+        # - "/mnt/disk1/.beszel:/extra-filesystems/disk1:ro"
+      docker_additional_options:
+        restart_policy: unless-stopped
